@@ -1,4 +1,4 @@
-package com.lima.s.apis.infra.security.cors;
+package com.lima.s.apis.infra.cors;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

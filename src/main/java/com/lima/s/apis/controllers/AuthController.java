@@ -7,7 +7,6 @@ import com.lima.s.apis.dto.ResponseDTO;
 import com.lima.s.apis.infra.security.TokenService;
 import com.lima.s.apis.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,16 +24,37 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
 
-    @PostMapping("/login")
-    public ResponseEntity login(@RequestBody LoginRequestDTO body){
-        User user = this.repository.findByEmail(body.email()).orElseThrow(() -> new RuntimeException("User not found"));
-        if(passwordEncoder.matches(body.password(), user.getPassword())) {
-            String token = this.tokenService.generateToken(user);
-            return ResponseEntity.ok(new ResponseDTO(user.getName(), token));
-        }
-        return ResponseEntity.badRequest().build();
+@PostMapping("/login")
+public ResponseEntity login(@RequestBody LoginRequestDTO body) {
+
+    System.out.println("EMAIL RECEBIDO: [" + body.email() + "]");
+    System.out.println("SENHA RECEBIDA: [" + body.password() + "]");
+
+    User user = this.repository.findByEmail(body.email())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    System.out.println("USUARIO ENCONTRADO: " + user.getEmail());
+    System.out.println("HASH NO BANCO: " + user.getPassword());
+
+    boolean senhaCorreta =
+            passwordEncoder.matches(body.password(), user.getPassword());
+
+    System.out.println("SENHA CORRETA: " + senhaCorreta);
+
+    if (senhaCorreta) {
+        String token = this.tokenService.generateToken(user);
+
+        System.out.println("TOKEN GERADO COM SUCESSO");
+
+        return ResponseEntity.ok(
+                new ResponseDTO(user.getName(), token)
+        );
     }
 
+    System.out.println("SENHA INCORRETA");
+
+    return ResponseEntity.badRequest().build();
+}
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegisterRequestDTO body){
