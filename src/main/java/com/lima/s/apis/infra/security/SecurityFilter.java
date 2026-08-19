@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 @Component
-public class SecurityFilter {
+public class SecurityFilter extends OncePerRequestFilter{
 
     @Autowired
     TokenService tokenService;
@@ -31,19 +31,18 @@ public class SecurityFilter {
         var token = this.recoverToken(request);
         var login = tokenService.validateToken(token);
 
-        if (login != null){
-            User user = userRepository.findByEmail(login).orElseThrow(()-> new RuntimeException("use not found"));
+        if(login != null){
+            User user = userRepository.findByEmail(login).orElseThrow(() -> new RuntimeException("User Not Found"));
             var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
             var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);
-
     }
+
     private String recoverToken(HttpServletRequest request){
-        var authHeander = request.getHeader("Authorization");
-        if (authHeander == null) return null;
-        return authHeander.replace("Bearer", "");
+        var authHeader = request.getHeader("Authorization");
+        if(authHeader == null) return null;
+        return authHeader.replace("Bearer ", "");
     }
-
 }
